@@ -64,4 +64,4 @@ async function getLastMessage(channel) {
 }
 
 // Keep updating procon status every 10 seconds
-setInterval(updateProconStatus, 10 * 1000);
+setInterval(updateProconStatus, (process.env.UPDATE_INTERVAL_SECONDS || 30) * 1000);

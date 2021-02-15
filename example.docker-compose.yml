@@ -8,5 +8,6 @@ services:
       - SERVER_ID=<serverId>
       - BOT_TOKEN=<botToken>
       - PROCON_STATUS_CHANNEL=<proconStatusChannel>
+      - UPDATE_INTERVAL_SECONDS=30
       - LOG_LEVEL=info
       

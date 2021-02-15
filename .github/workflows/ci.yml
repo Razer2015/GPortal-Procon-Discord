@@ -30,7 +30,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: xfilefin/xfilefin/gportal-procon:${{ steps.buildnumber.outputs.build_number }},xfilefin/xfilefin/gportal-procon:latest
+          tags: xfilefin/gportal-procon:${{ steps.buildnumber.outputs.build_number }},xfilefin/gportal-procon:latest
       # - name: Invoke deployment hook
       #   uses: distributhor/workflow-webhook@v1
       #   env:

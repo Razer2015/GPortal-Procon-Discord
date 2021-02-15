@@ -14,16 +14,33 @@ const procon = new Procon(process.env.SERVER_ID, process.env.AUTH_TOKEN);
 // Discord
 const client = new Discord.Client();
 client.login(process.env.BOT_TOKEN);
+let proconUpdateEmoji = null;
+let proconStartEmoji = null;
+let proconStopEmoji = null;
+let proconRestartEmoji = null;
 
 var proconStatusChannel = null;
 
 client.on('ready', async () => {
     proconStatusChannel = client.channels.cache.get(process.env.PROCON_STATUS_CHANNEL);
-    updateProconStatus(); // Initial update at boot
+    preparations(); // Fetch custom emojis
+    updateProconStatus(true); // Initial update at boot
     logger.info('Bot connected and initial update started');
 })
 
-async function updateProconStatus() {
+function preparations() {
+    // TODO: Some kind of check if fetching emoji fails
+    proconUpdateEmoji = client.emojis.cache.get(process.env.PROCON_UPDATE_ID);
+    logger.debug('Update emoji: ', proconUpdateEmoji);
+    proconStartEmoji = client.emojis.cache.get(process.env.PROCON_START_ID);
+    logger.debug('Start emoji: ', proconStartEmoji);
+    proconStopEmoji = client.emojis.cache.get(process.env.PROCON_STOP_ID);
+    logger.debug('Stop emoji: ', proconStopEmoji);
+    proconRestartEmoji = client.emojis.cache.get(process.env.PROCON_RESTART_ID);
+    logger.debug('Restart emoji: ', proconRestartEmoji);
+}
+
+async function updateProconStatus(initialCheck) {
     try {
         if (proconStatusChannel == null) {
             logger.warn("Skipping Procon status update because channel couldn't be found.");
@@ -40,11 +57,57 @@ async function updateProconStatus() {
             .setFooter('Procon status updater by xfileFIN');
 
         let prevMessage = await getLastMessage(proconStatusChannel);
+        if (initialCheck && prevMessage && prevMessage.author.id === client.user.id) { // Remove previous message if it was from startup (so reactions work)
+            await prevMessage.delete();
+            prevMessage = null;
+        }
+
         if (prevMessage && prevMessage.author.id === client.user.id) { // Edit last embed
             prevMessage.edit(embed);
         }
         else { // Edit last message
-            proconStatusChannel.send(embed);
+            const m = await proconStatusChannel.send(embed);
+
+            // Add reactions
+            await m.react(proconUpdateEmoji);
+            await m.react(proconRestartEmoji);
+            await m.react(proconStartEmoji);
+            await m.react(proconStopEmoji);
+
+            // Add reaction listeners
+            const filter = (reaction, user) => {
+                // TODO: Add check for authorized users only
+                return [process.env.PROCON_UPDATE_ID, process.env.PROCON_RESTART_ID, process.env.PROCON_START_ID, process.env.PROCON_STOP_ID].includes(reaction.emoji.id);
+            };
+
+            m.awaitReactions(filter, { max: 1 })
+                .then(async collected => {
+                    const reaction = collected.first();
+
+                    switch (reaction.emoji.id) {
+                        case process.env.PROCON_UPDATE_ID:
+                            logger.debug("Implemented Procon status Update");
+                            await m.delete();
+                            updateProconStatus();
+                            break;
+                        case process.env.PROCON_RESTART_ID:
+                            logger.debug("Not implemented Procon Restart");
+                            await m.delete();
+                            updateProconStatus();
+                            break;
+                        case process.env.PROCON_START_ID:
+                            logger.debug("Not implemented Procon Start");
+                            await m.delete();
+                            updateProconStatus();
+                            break;
+                        case process.env.PROCON_STOP_ID:
+                            logger.debug("Not implemented Procon Stop");
+                            await m.delete();
+                            updateProconStatus();
+                            break;
+                    }
+                })
+                .catch(console.error);
         }
 
         logger.debug(`Procon status updated to: ${status.message}`);

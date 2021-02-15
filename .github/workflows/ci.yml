@@ -1,0 +1,40 @@
+name: Docker build and deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: Build and push docker images
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Generate build number
+        id: buildnumber
+        uses: einaregilsson/build-number@v3
+        with:
+          token: ${{secrets.github_token}}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags: xfilefin/xfilefin/gportal-procon:${{ steps.buildnumber.outputs.build_number }},xfilefin/xfilefin/gportal-procon:latest
+      # - name: Invoke deployment hook
+      #   uses: distributhor/workflow-webhook@v1
+      #   env:
+      #     webhook_url: ${{ secrets.WEBHOOK_URL }}
+      #     webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+      #     data: '{ "commit_tag": "dev-${{ steps.buildnumber.outputs.build_number }}" }'

@@ -1,0 +1,12 @@
+version: '3.2'
+
+services:
+  discord:
+    image: xfilefin/gportal-procon:dev-latest
+    environment: 
+      - AUTH_TOKEN=<yourAuthTokenFromGPortalHere>
+      - SERVER_ID=<serverId>
+      - BOT_TOKEN=<botToken>
+      - PROCON_STATUS_CHANNEL=<proconStatusChannel>
+      - LOG_LEVEL=info
+      

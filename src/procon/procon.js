@@ -24,25 +24,71 @@ class Procon {
     constructor(layerId, authToken) {
         this.layerId = layerId;
         this.authToken = authToken;
+        this.locale = process.env.LOCALE || 'en_GB';
     }
 
-    start() {
-        console.log("Unimplemented start called");
+    async start() {
+        try {
+            const opts = {
+                headers: {
+                    cookie: `webinterface_session=${this.authToken}; webinterface_locale=${this.locale}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            };
+
+            const result = await fetch(`https://www.g-portal.com/eur/server/procon/start/${this.layerId}`, opts)
+                .then(response => response.json());
+
+            return result;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    stop() {
-        console.log("Unimplemented stop called");
+    async stop() {
+        try {
+            const opts = {
+                headers: {
+                    cookie: `webinterface_session=${this.authToken}; webinterface_locale=${this.locale}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            };
+
+            const result = await fetch(`https://www.g-portal.com/eur/server/procon/stop/${this.layerId}`, opts)
+                .then(response => response.json());
+
+                return result;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
-    restart() {
-        console.log("Unimplemented restart called");
+    async restart() {
+        try {
+            const opts = {
+                headers: {
+                    cookie: `webinterface_session=${this.authToken}; webinterface_locale=${this.locale}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            };
+
+            const result = await fetch(`https://www.g-portal.com/eur/server/procon/restart/${this.layerId}`, opts)
+                .then(response => response.json());
+
+                return result;
+        } catch (error) {
+            console.error(error);
+        }
     }
 
     async updateStatus() {
         try {
             const opts = {
                 headers: {
-                    cookie: `webinterface_session=${this.authToken}`,
+                    cookie: `webinterface_session=${this.authToken}; webinterface_locale=${this.locale}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
@@ -51,7 +97,9 @@ class Procon {
             const result = await fetch(`https://www.g-portal.com/eur/server/procon/getServerStateFromDaemon/${this.layerId}`, opts)
                 .then(response => response.json());
 
-            return this.resolveStatus(result.state);
+            let response = this.resolveStatus(result.state);
+            response.state = result.state;
+            return response;
         } catch (error) {
             console.error(error);
         }
